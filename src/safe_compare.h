@@ -12,7 +12,11 @@ template< bool B, typename T = void >
 using enable_if_t = typename std::enable_if< B, T >::type;
 
 ///For c++11
-template< class T >
+template< typename T >
+using make_unsigned_t = typename std::make_unsigned< T >::type;
+
+///For c++11
+template< typename T >
 constexpr bool is_arithmetic_v = std::is_arithmetic< T >::value;
 
 ///For c++11
@@ -68,7 +72,7 @@ struct greater
     operator()( T lhs, U rhs ) const
     {
         return ( lhs >= 0 ) &&
-            ( static_cast< std::make_unsigned_t< T > >( lhs ) > rhs );
+            ( static_cast< make_unsigned_t< T > >( lhs ) > rhs );
     }
 
     ///
@@ -77,7 +81,7 @@ struct greater
     operator()( T lhs, U rhs ) const
     {
         return ( rhs < 0 ) ||
-            ( lhs > static_cast< std::make_unsigned_t< U > >( rhs ) );
+            ( lhs > static_cast< make_unsigned_t< U > >( rhs ) );
     }
 };
 
@@ -100,7 +104,7 @@ struct greater_equal
     operator()( T lhs, U rhs ) const
     {
         return ( lhs >= 0 ) &&
-            ( static_cast< std::make_unsigned_t< T > >( lhs ) >= rhs );
+            ( static_cast< make_unsigned_t< T > >( lhs ) >= rhs );
     }
 
     ///
@@ -109,7 +113,7 @@ struct greater_equal
     operator()( T lhs, U rhs ) const
     {
         return ( rhs < 0 ) ||
-            ( lhs >= static_cast< std::make_unsigned_t< U > >( rhs ) );
+            ( lhs >= static_cast< make_unsigned_t< U > >( rhs ) );
     }
 };
 
@@ -132,7 +136,7 @@ class less
     operator()( T lhs, U rhs ) const
     {
         return ( lhs < 0 ) ||
-            ( static_cast< std::make_unsigned_t< T > >( lhs ) < rhs );
+            ( static_cast< make_unsigned_t< T > >( lhs ) < rhs );
     }
 
     ///
@@ -141,7 +145,7 @@ class less
     operator()( T lhs, U rhs ) const
     {
         return ( rhs >= 0 ) &&
-            ( lhs < static_cast< std::make_unsigned_t< U > >( rhs ) );
+            ( lhs < static_cast< make_unsigned_t< U > >( rhs ) );
     }
 };
 
@@ -164,7 +168,7 @@ class less_equal
     operator()( T lhs, U rhs ) const
     {
         return ( lhs < 0 ) ||
-            ( static_cast< std::make_unsigned_t< T > >( lhs ) <= rhs );
+            ( static_cast< make_unsigned_t< T > >( lhs ) <= rhs );
     }
 
     ///
@@ -173,7 +177,7 @@ class less_equal
     operator()( T lhs, U rhs ) const
     {
         return ( rhs >= 0 ) &&
-            ( lhs <= static_cast< std::make_unsigned_t< U > >( rhs ) );
+            ( lhs <= static_cast< make_unsigned_t< U > >( rhs ) );
     }
 };
 
