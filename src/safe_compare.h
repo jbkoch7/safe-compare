@@ -26,7 +26,6 @@
 
 #pragma once
 
-// --- Standard Includes --- //
 #include <type_traits>
 
 namespace safe_compare
@@ -113,6 +112,38 @@ struct greater
 ///
 template< typename A, typename B, typename =
     enable_if_t< both_arithmetic_v< A, B > > >
+struct less
+{
+    ///
+    template< typename T = A, typename U = B >
+    constexpr enable_if_t< !needs_cast_v< T, U >, bool >
+    operator()( T lhs, U rhs ) const
+    {
+        return ( lhs < rhs );
+    }
+
+    ///
+    template< typename T = A, typename U = B >
+    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< T >, bool >
+    operator()( T lhs, U rhs ) const
+    {
+        return ( lhs < 0 ) ||
+            ( static_cast< make_unsigned_t< T > >( lhs ) < rhs );
+    }
+
+    ///
+    template< typename T = A, typename U = B >
+    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< U >, bool >
+    operator()( T lhs, U rhs ) const
+    {
+        return ( rhs >= 0 ) &&
+            ( lhs < static_cast< make_unsigned_t< U > >( rhs ) );
+    }
+};
+
+///
+template< typename A, typename B, typename =
+    enable_if_t< both_arithmetic_v< A, B > > >
 struct greater_equal
 {
     ///
@@ -145,39 +176,7 @@ struct greater_equal
 ///
 template< typename A, typename B, typename =
     enable_if_t< both_arithmetic_v< A, B > > >
-class less
-{
-    ///
-    template< typename T = A, typename U = B >
-    constexpr enable_if_t< !needs_cast_v< T, U >, bool >
-    operator()( T lhs, U rhs ) const
-    {
-        return ( lhs < rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< T >, bool >
-    operator()( T lhs, U rhs ) const
-    {
-        return ( lhs < 0 ) ||
-            ( static_cast< make_unsigned_t< T > >( lhs ) < rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< U >, bool >
-    operator()( T lhs, U rhs ) const
-    {
-        return ( rhs >= 0 ) &&
-            ( lhs < static_cast< make_unsigned_t< U > >( rhs ) );
-    }
-};
-
-///
-template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic_v< A, B > > >
-class less_equal
+struct less_equal
 {
     ///
     template< typename T = A, typename U = B >
@@ -205,5 +204,37 @@ class less_equal
             ( lhs <= static_cast< make_unsigned_t< U > >( rhs ) );
     }
 };
+
+///
+template< typename T, typename U, typename =
+    enable_if_t< both_arithmetic_v< T, U > > >
+constexpr bool is_greater( T lhs, U rhs )
+{
+    return greater< T, U >()( lhs, rhs );
+}
+
+///
+template< typename T, typename U, typename =
+    enable_if_t< both_arithmetic_v< T, U > > >
+constexpr bool is_less( T lhs, U rhs )
+{
+    return less< T, U >()( lhs, rhs );
+}
+
+///
+template< typename T, typename U, typename =
+    enable_if_t< both_arithmetic_v< T, U > > >
+constexpr bool is_greater_equal( T lhs, U rhs )
+{
+    return greater_equal< T, U >()( lhs, rhs );
+}
+
+///
+template< typename T, typename U, typename =
+    enable_if_t< both_arithmetic_v< T, U > > >
+constexpr bool is_less_equal( T lhs, U rhs )
+{
+    return less_equal< T, U >()( lhs, rhs );
+}
 
 } //end safe_compare
