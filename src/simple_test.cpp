@@ -13,9 +13,22 @@ int main(
 {
     try
     {
-        safe_compare::greater< int, unsigned int > safe_greater;
-        std::cout << "Standard compare: " << ( -1 > 1U ) << std::endl;
-        std::cout << "Safe compare: " << safe_greater( -1, 1U ) << std::endl;
+        std::cout << "Compare ( -1 > 1U ): "
+            << std::boolalpha << ( -1 > 1U ) << std::endl;
+        std::cout << "Safe Compare ( -1 > 1U ): "
+            << std::boolalpha << safe_compare::is_greater( -1, 1U ) << std::endl;
+        std::cout << "Compare ( -1 < 1U ): "
+            << std::boolalpha << ( -1 < 1U ) << std::endl;
+        std::cout << "Safe Compare ( -1 < 1U ): "
+            << std::boolalpha << safe_compare::is_less( -1, 1U ) << std::endl;
+        std::cout << "Compare ( -1 >= 1U ): "
+            << std::boolalpha << ( -1 >= 1U ) << std::endl;
+        std::cout << "Safe Compare ( -1 >= 1U ): "
+            << std::boolalpha << safe_compare::is_greater_equal( -1, 1U ) << std::endl;
+        std::cout << "Compare ( -1 <= 1U ): "
+            << std::boolalpha << ( -1 <= 1U ) << std::endl;
+        std::cout << "Safe Compare ( -1 <= 1U ): "
+            << std::boolalpha << safe_compare::is_less_equal( -1, 1U ) << std::endl;
     }
     catch( std::exception const& e )
     {
