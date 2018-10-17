@@ -12,6 +12,10 @@ set( ${v} ${${v}}.${${CMAKE_PROJECT_NAME}_MICRO_VERSION} )
 set( v ${${v}} )
 message( STATUS "Configuring ${CMAKE_PROJECT_NAME}: v${v}\n" )
 
+set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
+set( CMAKE_CXX_EXTENSIONS OFF )
+
 set( INSTALL_LIBDIR lib )
 set( INSTALL_BINDIR bin )
 set( INSTALL_INCDIR include )
