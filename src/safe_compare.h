@@ -31,69 +31,49 @@
 namespace safe_compare
 {
 
-///For c++11
+///
 template< bool B, typename T = void >
 using enable_if_t = typename std::enable_if< B, T >::type;
 
-///For c++11
+///
 template< typename T >
 using make_unsigned_t = typename std::make_unsigned< T >::type;
 
-///For c++11
-template< typename T >
-constexpr bool is_arithmetic_v = std::is_arithmetic< T >::value;
-
-///For c++11
-template< typename T >
-constexpr bool is_integral_v = std::is_integral< T >::value;
-
-///For c++11
-template< typename T >
-constexpr bool is_signed_v = std::is_signed< T >::value;
+///
+template< typename T, typename U >
+struct both_arithmetic
+{
+    static constexpr bool value =
+        std::is_arithmetic< T >::value && std::is_arithmetic< U >::value;
+};
 
 ///
 template< typename T, typename U >
-constexpr bool both_arithmetic_v =
-    is_arithmetic_v< T > && is_arithmetic_v< U >;
-
-///
-template< typename T, typename U >
-constexpr bool both_integral_v =
-    is_integral_v< T > && is_integral_v< U >;
-
-///
-template< typename T, typename U >
-constexpr bool both_signed_v =
-    is_signed_v< T > && is_signed_v< U >;
-
-///
-template< typename T, typename U >
-constexpr bool both_unsigned_v =
-    !is_signed_v< T > && !is_signed_v< U >;
-
-///
-template< typename T, typename U >
-constexpr bool needs_cast_v =
-    both_integral_v< T, U > &&
-    !( both_signed_v< T, U > || both_unsigned_v< T, U > );
+struct needs_cast
+{
+    static constexpr bool value =
+        ( std::is_integral< T >::value && std::is_integral< U >::value ) && (
+        ( std::is_signed< T >::value && std::is_unsigned< U >::value ) ||
+        ( std::is_unsigned< T >::value && std::is_signed< U >::value ) );
+};
 
 ///
 template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic_v< A, B > > >
+    enable_if_t< both_arithmetic< A, B >::value > >
 struct greater
 {
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< !needs_cast_v< T, U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< !needs_cast< T, U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs > rhs );
     }
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< T >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs >= 0 ) &&
             ( static_cast< make_unsigned_t< T > >( lhs ) > rhs );
@@ -101,8 +81,8 @@ struct greater
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( rhs < 0 ) ||
             ( lhs > static_cast< make_unsigned_t< U > >( rhs ) );
@@ -111,21 +91,21 @@ struct greater
 
 ///
 template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic_v< A, B > > >
+    enable_if_t< both_arithmetic< A, B >::value > >
 struct less
 {
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< !needs_cast_v< T, U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< !needs_cast< T, U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs < rhs );
     }
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< T >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs < 0 ) ||
             ( static_cast< make_unsigned_t< T > >( lhs ) < rhs );
@@ -133,8 +113,8 @@ struct less
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( rhs >= 0 ) &&
             ( lhs < static_cast< make_unsigned_t< U > >( rhs ) );
@@ -143,21 +123,21 @@ struct less
 
 ///
 template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic_v< A, B > > >
+    enable_if_t< both_arithmetic< A, B >::value > >
 struct greater_equal
 {
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< !needs_cast_v< T, U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< !needs_cast< T, U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs >= rhs );
     }
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< T >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs >= 0 ) &&
             ( static_cast< make_unsigned_t< T > >( lhs ) >= rhs );
@@ -165,8 +145,8 @@ struct greater_equal
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( rhs < 0 ) ||
             ( lhs >= static_cast< make_unsigned_t< U > >( rhs ) );
@@ -175,21 +155,21 @@ struct greater_equal
 
 ///
 template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic_v< A, B > > >
+    enable_if_t< both_arithmetic< A, B >::value > >
 struct less_equal
 {
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< !needs_cast_v< T, U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< !needs_cast< T, U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs <= rhs );
     }
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< T >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( lhs < 0 ) ||
             ( static_cast< make_unsigned_t< T > >( lhs ) <= rhs );
@@ -197,8 +177,8 @@ struct less_equal
 
     ///
     template< typename T = A, typename U = B >
-    constexpr enable_if_t< needs_cast_v< T, U > && is_signed_v< U >, bool >
-    operator()( T lhs, U rhs ) const
+    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
+    constexpr operator()( T lhs, U rhs ) const
     {
         return ( rhs >= 0 ) &&
             ( lhs <= static_cast< make_unsigned_t< U > >( rhs ) );
@@ -207,7 +187,7 @@ struct less_equal
 
 ///
 template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic_v< T, U > > >
+    enable_if_t< both_arithmetic< T, U >::value > >
 constexpr bool is_greater( T lhs, U rhs )
 {
     return greater< T, U >()( lhs, rhs );
@@ -215,7 +195,7 @@ constexpr bool is_greater( T lhs, U rhs )
 
 ///
 template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic_v< T, U > > >
+    enable_if_t< both_arithmetic< T, U >::value > >
 constexpr bool is_less( T lhs, U rhs )
 {
     return less< T, U >()( lhs, rhs );
@@ -223,7 +203,7 @@ constexpr bool is_less( T lhs, U rhs )
 
 ///
 template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic_v< T, U > > >
+    enable_if_t< both_arithmetic< T, U >::value > >
 constexpr bool is_greater_equal( T lhs, U rhs )
 {
     return greater_equal< T, U >()( lhs, rhs );
@@ -231,7 +211,7 @@ constexpr bool is_greater_equal( T lhs, U rhs )
 
 ///
 template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic_v< T, U > > >
+    enable_if_t< both_arithmetic< T, U >::value > >
 constexpr bool is_less_equal( T lhs, U rhs )
 {
     return less_equal< T, U >()( lhs, rhs );
