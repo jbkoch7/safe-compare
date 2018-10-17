@@ -15,13 +15,13 @@ The library currently consists of a single header file, [safe_compare.h](src/saf
 
 ### Functors
 ```C++
-safe_compare::greater safe_greater< int, unsigned int >;
+safe_compare::greater< int, unsigned int > safe_greater;
 bool gt = safe_greater( -1, 1U );
-safe_compare::less safe_less< int, unsigned int >;
+safe_compare::less< int, unsigned int > safe_less;
 bool lt = safe_less( -1, 1U );
-safe_compare::greater_equal safe_greater_equal< int, unsigned int >;
+safe_compare::greater_equal< int, unsigned int > safe_greater_equal;
 bool gte = safe_greater_equal( -1, 1U );
-safe_compare::less_equal safe_less_equal< int, unsigned int >;
+safe_compare::less_equal< int, unsigned int > safe_less_equal;
 bool lte = safe_less_equal( -1, 1U );
 ```
 
