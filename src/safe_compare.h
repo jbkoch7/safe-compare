@@ -44,7 +44,24 @@ template< typename T, typename U >
 struct both_arithmetic
 {
     static constexpr bool value =
-        std::is_arithmetic< T >::value && std::is_arithmetic< U >::value;
+        ( std::is_arithmetic< T >::value && std::is_arithmetic< U >::value );
+};
+
+///
+template< typename T, typename U >
+struct both_integral
+{
+    static constexpr bool value =
+        ( std::is_integral< T >::value && std::is_integral< U >::value );
+};
+
+///
+template< typename T, typename U >
+struct different_signed
+{
+    static constexpr bool value =
+        ( std::is_signed< T >::value && std::is_unsigned< U >::value ) ||
+        ( std::is_unsigned< T >::value && std::is_signed< U >::value );
 };
 
 ///
@@ -52,9 +69,7 @@ template< typename T, typename U >
 struct needs_cast
 {
     static constexpr bool value =
-        ( std::is_integral< T >::value && std::is_integral< U >::value ) && (
-        ( std::is_signed< T >::value && std::is_unsigned< U >::value ) ||
-        ( std::is_unsigned< T >::value && std::is_signed< U >::value ) );
+        ( both_integral< T, U >::value && different_signed< T, U >::value );
 };
 
 ///
