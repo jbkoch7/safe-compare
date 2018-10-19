@@ -44,7 +44,7 @@ template< typename T, typename U >
 struct both_arithmetic
 {
     static constexpr bool value =
-        ( std::is_arithmetic< T >::value && std::is_arithmetic< U >::value );
+        std::is_arithmetic< T >::value && std::is_arithmetic< U >::value;
 };
 
 ///
@@ -52,184 +52,174 @@ template< typename T, typename U >
 struct both_integral
 {
     static constexpr bool value =
-        ( std::is_integral< T >::value && std::is_integral< U >::value );
+        std::is_integral< T >::value && std::is_integral< U >::value;
 };
+
+///
+template< typename T, typename U, typename =
+    enable_if_t< both_arithmetic< T, U >::value > >
+struct is_first_variant
+{
+    static constexpr bool value = both_integral< T, U >::value &&
+        std::is_signed< T >::value && std::is_unsigned< U >::value;
+};
+
+///
+template< typename T, typename U, typename =
+    enable_if_t< both_arithmetic< T, U >::value > >
+struct is_second_variant
+{
+    static constexpr bool value = both_integral< T, U >::value &&
+        std::is_unsigned< T >::value && std::is_signed< U >::value;
+};
+
+///
+template< typename T, typename U, typename =
+    enable_if_t< both_arithmetic< T, U >::value > >
+struct is_not_variant
+{
+    static constexpr bool value =
+        !is_first_variant< T, U >::value && !is_second_variant< T, U >::value;
+};
+
+///
+template< typename T, typename U,
+    enable_if_t< is_not_variant< T, U >::value, int > = 0 >
+constexpr bool is_greater( T lhs, U rhs )
+{
+    return ( lhs > rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_first_variant< T, U >::value, int > = 0 >
+constexpr bool is_greater( T lhs, U rhs )
+{
+    return ( lhs >= 0 ) && ( static_cast< make_unsigned_t< T > >( lhs ) > rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_second_variant< T, U >::value, int > = 0 >
+constexpr bool is_greater( T lhs, U rhs )
+{
+    return ( rhs < 0 ) || ( lhs > static_cast< make_unsigned_t< U > >( rhs ) );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_not_variant< T, U >::value, int > = 0 >
+constexpr bool is_less( T lhs, U rhs )
+{
+    return ( lhs < rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_first_variant< T, U >::value, int > = 0 >
+constexpr bool is_less( T lhs, U rhs )
+{
+    return ( lhs < 0 ) || ( static_cast< make_unsigned_t< T > >( lhs ) < rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_second_variant< T, U >::value, int > = 0 >
+constexpr bool is_less( T lhs, U rhs )
+{
+    return ( rhs >= 0 ) && ( lhs < static_cast< make_unsigned_t< U > >( rhs ) );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_not_variant< T, U >::value, int > = 0 >
+constexpr bool is_greater_equal( T lhs, U rhs )
+{
+    return ( lhs >= rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_first_variant< T, U >::value, int > = 0 >
+constexpr bool is_greater_equal( T lhs, U rhs )
+{
+    return ( lhs >= 0 ) && ( static_cast< make_unsigned_t< T > >( lhs ) >= rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_second_variant< T, U >::value, int > = 0 >
+constexpr bool is_greater_equal( T lhs, U rhs )
+{
+    return ( rhs < 0 ) || ( lhs >= static_cast< make_unsigned_t< U > >( rhs ) );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_not_variant< T, U >::value, int > = 0 >
+constexpr bool is_less_equal( T lhs, U rhs )
+{
+    return ( lhs <= rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_first_variant< T, U >::value, int > = 0 >
+constexpr bool is_less_equal( T lhs, U rhs )
+{
+    return ( lhs < 0 ) || ( static_cast< make_unsigned_t< T > >( lhs ) <= rhs );
+}
+
+///
+template< typename T, typename U,
+    enable_if_t< is_second_variant< T, U >::value, int > = 0 >
+constexpr bool is_less_equal( T lhs, U rhs )
+{
+    return ( rhs >= 0 ) && ( lhs <= static_cast< make_unsigned_t< U > >( rhs ) );
+}
 
 ///
 template< typename T, typename U >
-struct different_signed
-{
-    static constexpr bool value =
-        ( std::is_signed< T >::value && std::is_unsigned< U >::value ) ||
-        ( std::is_unsigned< T >::value && std::is_signed< U >::value );
-};
-
-///
-template< typename T, typename U >
-struct needs_cast
-{
-    static constexpr bool value =
-        ( both_integral< T, U >::value && different_signed< T, U >::value );
-};
-
-///
-template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic< A, B >::value > >
 struct greater
 {
     ///
-    template< typename T = A, typename U = B >
-    enable_if_t< !needs_cast< T, U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
+    constexpr bool operator()( T lhs, U rhs ) const
     {
-        return ( lhs > rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( lhs >= 0 ) &&
-            ( static_cast< make_unsigned_t< T > >( lhs ) > rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( rhs < 0 ) ||
-            ( lhs > static_cast< make_unsigned_t< U > >( rhs ) );
+        return is_greater< T, U >( lhs, rhs );
     }
 };
 
 ///
-template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic< A, B >::value > >
+template< typename T, typename U >
 struct less
 {
     ///
-    template< typename T = A, typename U = B >
-    enable_if_t< !needs_cast< T, U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
+    constexpr bool operator()( T lhs, U rhs ) const
     {
-        return ( lhs < rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( lhs < 0 ) ||
-            ( static_cast< make_unsigned_t< T > >( lhs ) < rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( rhs >= 0 ) &&
-            ( lhs < static_cast< make_unsigned_t< U > >( rhs ) );
+        return is_less< T, U >( lhs, rhs );
     }
 };
 
 ///
-template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic< A, B >::value > >
+template< typename T, typename U >
 struct greater_equal
 {
     ///
-    template< typename T = A, typename U = B >
-    enable_if_t< !needs_cast< T, U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
+    constexpr bool operator()( T lhs, U rhs ) const
     {
-        return ( lhs >= rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( lhs >= 0 ) &&
-            ( static_cast< make_unsigned_t< T > >( lhs ) >= rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( rhs < 0 ) ||
-            ( lhs >= static_cast< make_unsigned_t< U > >( rhs ) );
+        return is_greater_equal< T, U >( lhs, rhs );
     }
 };
 
 ///
-template< typename A, typename B, typename =
-    enable_if_t< both_arithmetic< A, B >::value > >
+template< typename T, typename U >
 struct less_equal
 {
     ///
-    template< typename T = A, typename U = B >
-    enable_if_t< !needs_cast< T, U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
+    constexpr bool operator()( T lhs, U rhs ) const
     {
-        return ( lhs <= rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< T >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( lhs < 0 ) ||
-            ( static_cast< make_unsigned_t< T > >( lhs ) <= rhs );
-    }
-
-    ///
-    template< typename T = A, typename U = B >
-    enable_if_t< needs_cast< T, U >::value && std::is_signed< U >::value, bool >
-    constexpr operator()( T lhs, U rhs ) const
-    {
-        return ( rhs >= 0 ) &&
-            ( lhs <= static_cast< make_unsigned_t< U > >( rhs ) );
+        return is_less_equal< T, U >( lhs, rhs );
     }
 };
-
-///
-template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic< T, U >::value > >
-constexpr bool is_greater( T lhs, U rhs )
-{
-    return greater< T, U >()( lhs, rhs );
-}
-
-///
-template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic< T, U >::value > >
-constexpr bool is_less( T lhs, U rhs )
-{
-    return less< T, U >()( lhs, rhs );
-}
-
-///
-template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic< T, U >::value > >
-constexpr bool is_greater_equal( T lhs, U rhs )
-{
-    return greater_equal< T, U >()( lhs, rhs );
-}
-
-///
-template< typename T, typename U, typename =
-    enable_if_t< both_arithmetic< T, U >::value > >
-constexpr bool is_less_equal( T lhs, U rhs )
-{
-    return less_equal< T, U >()( lhs, rhs );
-}
 
 } //end safe_compare
